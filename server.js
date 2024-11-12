@@ -33,17 +33,47 @@ app.post('/messages', (req, res) => {
         message: req.body.message
     };
 
+    // Function to check and delete messages with bad words
+    const checkAndDeleteBadWords = () => {
+        connection.query(
+            'DELETE FROM messages WHERE message LIKE ?',
+            ['%badword%'],
+            (err, deleteResults) => {
+                if (err) {
+                    console.error('Error removing censored message:', err);
+                }
+                if (deleteResults.affectedRows > 0) {
+                    console.log('Removed censored message');
+                }
+            }
+        );
+    };
+
     connection.query('INSERT INTO messages SET ?', newMessage, (err, results) => {
         if (err) {
             console.error('Error saving message:', err);
             return res.sendStatus(500);
         }
-        
-        io.emit('message', req.body);
-        messages.push(req.body);
+
+        // Check for bad words after insertion
+        connection.query(
+            'SELECT * FROM messages WHERE message LIKE ? AND id = ?',
+            ['%badword%', results.insertId],
+            (err, censored) => {
+                if (err) {
+                    console.error('Error checking for bad words:', err);
+                } else if (censored && censored.length > 0) {
+                    console.log('Censored word found', censored);
+                    checkAndDeleteBadWords();
+                }
+            }
+        );
+
+        io.emit('message', newMessage);
         res.sendStatus(200);
     });
 });
+
 
 
 io.on('connection', (socket) => {
