@@ -6,6 +6,7 @@ var io = require('socket.io')(http)
 var mysql = require('mysql2')
 
 
+
 app.use(express.static(__dirname))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
@@ -27,52 +28,52 @@ app.get('/messages', (req, res) => {
     });
 });
 
-app.post('/messages', (req, res) => {
+app.post('/messages', async (req, res) => {
     const newMessage = {
         name: req.body.name,
         message: req.body.message
     };
 
-    // Function to check and delete messages with bad words
-    const checkAndDeleteBadWords = () => {
-        connection.query(
-            'DELETE FROM messages WHERE message LIKE ?',
-            ['%badword%'],
-            (err, deleteResults) => {
-                if (err) {
-                    console.error('Error removing censored message:', err);
-                }
-                if (deleteResults.affectedRows > 0) {
-                    console.log('Removed censored message');
-                }
-            }
-        );
+    const queryDb = (sql, params) => {
+        return new Promise((resolve, reject) => {
+            connection.query(sql, params, (err, results) => {
+                if (err) reject(err);
+                resolve(results);
+            });
+        });
     };
 
-    connection.query('INSERT INTO messages SET ?', newMessage, (err, results) => {
-        if (err) {
-            console.error('Error saving message:', err);
-            return res.sendStatus(500);
+    try {
+        // Define specific bad words to check for
+        const badWords = ['badword', 'insult', 'when']; // Add more bad words to this array as needed
+        const messageText = newMessage.message.toLowerCase();
+        const hasBadWord = badWords.some(word => messageText.includes(word));
+
+        if (hasBadWord) {
+            console.log('Censored word found');
+            return res.sendStatus(400);
         }
 
-        // Check for bad words after insertion
-        connection.query(
-            'SELECT * FROM messages WHERE message LIKE ? AND id = ?',
-            ['%badword%', results.insertId],
-            (err, censored) => {
-                if (err) {
-                    console.error('Error checking for bad words:', err);
-                } else if (censored && censored.length > 0) {
-                    console.log('Censored word found', censored);
-                    checkAndDeleteBadWords();
-                }
-            }
+        // Save the message if no bad words found
+        const saveResult = await queryDb(
+            'INSERT INTO messages SET ?', 
+            newMessage
         );
 
+        // Emit message to all connected clients
         io.emit('message', newMessage);
+        
+        // Send success response
         res.sendStatus(200);
-    });
+
+    } catch (error) {
+        console.error('Error processing message:', error);
+        res.sendStatus(500);
+    }
 });
+
+
+
 
 
 
