@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pingster</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            background: #38533d;
+            height: 100vh;
+            margin: 200;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: #ee4040;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            color: rgb(10, 218, 255) !important;
+            font-size: 1.5rem;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-brand:hover {
+            text-decoration: none;
+        }
+
+        .user-menu-btn {
+            background: none;
+            border: none;
+            color: rgb(34, 165, 97);
+            padding: 8px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-menu-btn:hover {
+            background-color: rgba(26, 238, 26, 0.1);
+        }
+
+        .user-menu-btn:focus {
+            outline: none;
+        }
+
+        .user-menu-btn .fa-chevron-down {
+            font-size: 0.8rem;
+            margin-left: 5px;
+            transition: transform 0.3s ease;
+        }
+
+        .show .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            margin-top: 10px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(165, 69, 69, 0.1);
+            border-radius: 8px;
+            padding: 8px 0;
+        }
+
+        .dropdown-item {
+            padding: 8px 20px;
+            color: #bd04f5;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dropdown-item i {
+            width: 16px;
+            text-align: center;
+            color: #964a4a;
+        }
+
+        .dropdown-item:hover {
+            background-color: #35608b;
+        }
+
+        .dropdown-item.text-danger:hover {
+            background-color: #fff5f5;
+        }
+
+        .dropdown-divider {
+            margin: 8px 0;
+            border-top-color: #eee;
+        }
+
+        .user-info {
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .user-info i {
+            font-size: 1.1rem;
+        }
+
+        .chat-container {
+    flex: 1;
+    display: flex;
+    margin: 20px;
+    background: rgb(140, 199, 157);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    justify-content: flex-end; /* Add this to align content to the right */
+}
+
+.messages-container {
+    flex: 0 0 33.333%; /* This makes it take up 1/3 of the space */
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    margin-left: auto; /* This pushes it to the right */
+}
+
+#messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    margin-bottom: 20px;
+    width: 100%; /* Ensure messages take full width of container */
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 100%; /* Update this to take full width of container */
+    word-wrap: break-word;
+    position: relative;
+}
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.received {
+            background-color: #adfdb2fa;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.sent {
+            background-color: #226615;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message .sender {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .message .timestamp {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+
+        .input-group {
+            background: white;
+            padding: 10px;
+            border-top: 1px solid #dee2e6;
+            position: relative;
+        }
+
+        #messageInput {
+            border-radius: 20px;
+            padding: 10px 20px;
+            border: 1px solid #dee2e6;
+            transition: border-color 0.3s ease;
+        }
+
+        #messageInput:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+        }
+
+        .btn-send {
+            border-radius: 20px;
+            padding: 10px 25px;
+            margin-left: 10px;
+            background-color: #021b0ad7;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-send:hover {
+            background-color: #15b056;
+            transform: translateY(-1px);
+        }
+
+        .btn-send:active {
+            transform: translateY(1px);
+        }
+
+        .typing-indicator {
+            font-size: 0.9rem;
+            color: #2e0ca8;
+            margin-bottom: 10px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            background-color: rgba(0, 0, 0, 0.05);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .online-users {
+            width: 125px;
+            background: #b3adad;
+            padding: 20px;
+            border-left: 1px solid #dee2e6;
+        }
+
+        .online-users h5 {
+            margin-bottom: 15px;
+            color: #680d11;
+            font-weight: 600;
+        }
+
+        .users-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .users-list li {
+            padding: 5px 7px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family:'Courier New';
+            margin-bottom: 5px;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .users-list li:hover {
+            background-color: rgba(26, 115, 232, 0.1);
+        }
+
+        .user-status {
+            width: 8px;
+            height: 8px;
+            background: #34a853;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            position: relative;
+        }
+
+        .user-status::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            border-radius: inherit;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .message {
+    position: relative;
+}
+
+.context-menu {
+    position: fixed;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    padding: 5px 0;
+    min-width: 150px;
+    z-index: 1000;
+    display: none;
+}
+
+.context-menu-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.context-menu-item:hover {
+    background-color: #f0f0f0;
+}
+
+.context-menu-item i {
+    width: 16px;
+}
+
+.message.editing {
+    background-color: rgba(255, 255, 0, 0.1);
+}
+
+.edit-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+/* Add these styles to your existing <style> section */
+
+/* Video section styles */
+.video-section {
+    flex: 0 0 60.666%; /* Takes up 2/3 of the space */
+    background: #2a3d2e;
+    display: flex;
+    flex-direction: column;
+    margin-right: auto; /* This pushes messages to the right */
+}
+
+.main-video-container {
+    padding: 20px;
+    flex: 1;
+}
+
+.video-player {
+    width: 100%;
+    height: 400px;
+    background: #000;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.playlist-section {
+    height: 200px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.playlist-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.playlist-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.video-title {
+    color: white;
+    margin: 15px 0;
+    font-size: 1.2rem;
+}
+
+.video-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.control-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                margin: 10px;
+            }
+
+            .online-users {
+                display: none;
+            }
+
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <span class="navbar-brand">
+            <i class="fas fa-comments"></i> Pingster
+        <div class="ml-auto d-flex align-items-center">
+            <div class="dropdown">
+                <button class="dropdown-toggle user-menu-btn" type="button" id="userMenuDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="user-info mr-2">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="username">
+                    
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userMenuDropdown">
+                    <a class="dropdown-item" href="/profile">
+                        <i class="fas fa-user"></i> Profile
+                    </a>
+                    <a class="dropdown-item" href="/settings">
+                        <i class="fas fa-cog"></i> Account Settings
+                    </a>
+                    <a class="dropdown-item" href="/ping">
+                        <i class="fas fa-cog"></i> ping
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item text-danger" href="/logout" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="chat-container">
+        <div class="video-section">
+            <div class="search-section">
+                <input type="text" id="videoSearch" placeholder="Search videos..." class="form-control">
+            </div>
+
+            <div class="main-video-container">
+                <video class="video-player" id="mainVideo" controls>
+                    <source src="" type="video/mp4">
+                </video>
+                <div class="loading-indicator" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                </div>
+                <h3 class="video-title">Select a video to play</h3>
+                <div class="video-controls">
+                    <button class="control-btn" id="prevBtn">
+                        <i class="fas fa-step-backward"></i> Previous
+                    </button>
+                    <button class="control-btn" id="nextBtn">
+                        Next <i class="fas fa-step-forward"></i>
+                    </button>
+                    <!-- <div class="upload-section">
+                        <input type="file" id="videoUpload" accept="video/*" style="display: none;">
+                        <button class="control-btn" onclick="document.getElementById('videoUpload').click()">
+                        <i class="fas fa-upload"></i> Upload Video
+                    </button>
+                    </div> -->
+
+                </div>
+
+            </div>
+            <div class="filter-section">
+                <select class="form-control" id="categoryFilter">
+                    <option value="all">All Categories</option>
+                    <option value="music">Music</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="education">Education</option>
+                </select>
+            </div>
+            <div class="playlist-section">
+                <div id="playlist">
+    
+                </div>
+            </div>
+        </div>
+        <div class="messages-container">
+            <div id="messages"></div>
+            <div class="typing-indicator"></div>
+            <div class="input-group">
+                <input type="text" id="messageInput" class="form-control" placeholder="Pinging ........." autocomplete="off">
+                <div class="input-group-append">
+                    <button class="btn btn-primary btn-send">
+                        <i class="fas fa-paper-plane"></i> Ping
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="online-users">
+            <h5><i class="fas fa-users"></i> Online Users</h5>
+            <div id="userCount" class="mb-3">Users online: 0</div>
+            <ul class="users-list" id="usersList"></ul>
+        </div>
+    </div>
+    <div id="contextMenu" class="context-menu">
+        <div class="context-menu-item edit-message">
+            <i class="fas fa-edit"></i> Edit
+        </div>
+        <div class="context-menu-item delete-message">
+            <i class="fas fa-trash"></i> Delete
+        </div>
+    </div>
+    
+    
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        $(document).ready(function() {
+            const socket = io();
+            let typing = false;
+            let typingTimeout = null;
+
+            // Get username from server
+            $.get('/api/user', function(data) {
+                $('#username').text(data.username);
+                socket.emit('user connected', data.username);
+            });
+
+            // Load existing messages
+            $.get('/messages', function(data) {
+                data.forEach(addMessage);
+                scrollToBottom();
+            });
+
+            // Logout confirmation
+            $('#logoutBtn').click(function(e) {
+                e.preventDefault();
+                if (confirm('Are you sure you want to logout?')) {
+                    window.location.href = '/logout';
+                }
+            });
+
+
+            // Send message
+            $('.btn-send').click(sendMessage);
+            $('#messageInput').keypress(function(e) {
+                if (e.which == 13 && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            function sendMessage() {
+                const messageInput = $('#messageInput');
+                const message = messageInput.val().trim();
+                
+                if (message) {
+                    $.ajax({
+                        url: '/messages',
+                        method: 'POST',
+                        data: { message: message },
+                        success: function() {
+                            messageInput.val('');
+                        },
+                        error: function(xhr) {
+                            alert('Error sending message: ' + (xhr.responseJSON?.error || 'Unknown error'));
+                        }
+                    });
+                }
+            }
+
+            // Receive message
+            socket.on('message', addMessage);
+
+            function addMessage(message) {
+                const currentUser = $('#username').text();
+                const messageElement = $('<div>')
+                    .addClass('message')
+                    .addClass(message.name === currentUser ? 'sent' : 'received');
+
+                messageElement.html(`
+                    <div class="sender">${message.name}</div>
+                    <div class="content">${escapeHtml(message.message)}</div>
+                    <div class="timestamp">${message.timestamp}</div>
+                `);
+
+                $('#messages').append(messageElement);
+                scrollToBottom();
+            }
+
+            // Typing indicator
+            $('#messageInput').on('input', function() {
+                if (!typing) {
+                    typing = true;
+                    socket.emit('typing', $('#username').text());
+                }
+
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    typing = false;
+                    socket.emit('stop typing');
+                }, 1000);
+            });
+
+            socket.on('typing', function(user) {
+                $('.typing-indicator').text(`${user} is typing...`).show();
+            });
+
+            socket.on('stop typing', function() {
+                $('.typing-indicator').hide();
+            });
+
+            // Online users
+            socket.on('user count', function(count) {
+                $('#userCount').text(`Users online: ${count}`);
+            });
+
+            socket.on('active users', function(users) {
+                const usersList = $('#usersList');
+                usersList.empty();
+                users.forEach(user => {
+                    usersList.append(`
+                        <li>
+                            <span class="user-status">
+                            ${escapeHtml(user)}
+                        </li>
+                    `);
+                });
+            });
+
+            // Utility functions
+            function scrollToBottom() {
+                const messages = $('#messages');
+                messages.scrollTop(messages[0].scrollHeight);
+            }
+
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+    const contextMenu = document.getElementById('contextMenu');
+    let currentMessageElement = null;
+
+    // Hide context menu on click outside
+    document.addEventListener('click', function() {
+        contextMenu.style.display = 'none';
+    });
+
+    // Prevent context menu from closing when clicking inside it
+    contextMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Handle right click on messages
+    document.addEventListener('contextmenu', function(e) {
+        const messageElement = e.target.closest('.message');
+        if (messageElement) {
+            e.preventDefault();
+            currentMessageElement = messageElement;
+            
+            // Only show context menu for user's own messages
+            const messageUserId = messageElement.getAttribute('data-user-id');
+            if (messageUserId === currentUserId.toString()) {
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = e.pageX + 'px';
+                contextMenu.style.top = e.pageY + 'px';
+            }
+        }
+    });
+
+    // Handle edit message
+    document.querySelector('.edit-message').addEventListener('click', function() {
+        if (currentMessageElement) {
+            const messageId = currentMessageElement.getAttribute('data-message-id');
+            const messageText = currentMessageElement.querySelector('.message-text').textContent;
+            
+            // Create edit input
+            currentMessageElement.classList.add('editing');
+            const editInput = document.createElement('input');
+            editInput.type = 'text';
+            editInput.className = 'edit-input';
+            editInput.value = messageText;
+            
+            currentMessageElement.appendChild(editInput);
+            editInput.focus();
+
+            // Handle edit submission
+            editInput.addEventListener('keypress', async function(e) {
+                if (e.key === 'Enter') {
+                    const newText = this.value.trim();
+                    if (newText) {
+                        try {
+                            const response = await fetch('/api/messages/' + messageId, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ message: newText })
+                            });
+
+                            if (response.ok) {
+                                currentMessageElement.querySelector('.message-text').textContent = newText;
+                                currentMessageElement.classList.remove('editing');
+                                editInput.remove();
+                            } else {
+                                throw new Error('Failed to update message');
+                            }
+                        } catch (error) {
+                            console.error('Error updating message:', error);
+                            alert('Failed to update message');
+                        }
+                    }
+                }
+            });
+
+            // Handle cancel on escape
+            editInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Escape') {
+                    currentMessageElement.classList.remove('editing');
+                    editInput.remove();
+                }
+            });
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    // Handle delete message
+    document.querySelector('.delete-message').addEventListener('click', async function() {
+        if (currentMessageElement) {
+            if (confirm('Are you sure you want to delete this message?')) {
+                const messageId = currentMessageElement.getAttribute('data-message-id');
+                try {
+                    const response = await fetch('/api/messages/' + messageId, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        currentMessageElement.remove();
+                    } else {
+                        throw new Error('Failed to delete message');
+                    }
+                } catch (error) {
+                    console.error('Error deleting message:', error);
+                    alert('Failed to delete message');
+                }
+            }
+        }
+        contextMenu.style.display = 'none';
+    });
+});
+    const socket = io();
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.querySelector('.btn-send');
+    const messagesDiv = document.getElementById('messages');
+    const mainVideo = document.getElementById('mainVideo');
+    const playlist = document.getElementById('playlist');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    let currentVideoIndex = 0;
+
+    // Load videos from server
+    function loadVideos() {
+        fetch('/api/videos')
+            .then(response => response.json())
+            .then(videos => {
+                playlist.innerHTML = ''; // Clear existing playlist
+                videos.forEach((video, index) => {
+                    const playlistItem = document.createElement('div');
+                    playlistItem.className = 'playlist-item';
+                    playlistItem.innerHTML = `
+                        <div>
+                            <div style="color: white; font-weight: bold;">${video.title}</div>
+                            <div style="color: #ccc; font-size: 0.8em;">${video.duration || '0:00'}</div>
+                        </div>
+                    `;
+                    playlistItem.onclick = () => {
+                        currentVideoIndex = index;
+                        playVideo(video);
+                    };
+                    playlist.appendChild(playlistItem);
+                });
+
+                // Play first video if available
+                if (videos.length > 0) {
+                    playVideo(videos[0]);
+                }
+            })
+            .catch(error => console.error('Error loading videos:', error));
+    }
+
+    function playVideo(video) {
+        mainVideo.src = `/api/video/${video.filename}`;
+        document.querySelector('.video-title').textContent = video.title;
+        mainVideo.play();
+    }
+
+    // Video controls
+    prevBtn.onclick = () => {
+        const items = playlist.children;
+        if (currentVideoIndex > 0) {
+            currentVideoIndex--;
+            items[currentVideoIndex].click();
+        }
+    };
+
+    nextBtn.onclick = () => {
+        const items = playlist.children;
+        if (currentVideoIndex < items.length - 1) {
+            currentVideoIndex++;
+            items[currentVideoIndex].click();
+        }
+    };
+
+    // Add video upload functionality
+    const uploadForm = document.createElement('form');
+    uploadForm.innerHTML = `
+        <input type="file" id="videoUpload" accept="video/*" style="display: none;">
+        <button type="button" class="control-btn" onclick="document.getElementById('videoUpload').click()">
+            <i class="fas fa-upload"></i> Upload Video
+        </button>
+    `;
+    document.querySelector('.video-controls').appendChild(uploadForm);
+
+    document.getElementById('videoUpload').onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('video', file);
+        formData.append('title', file.name.split('.')[0]); // Use filename as title
+
+        fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log('Upload successful:', result);
+            loadVideos(); // Reload video list
+        })
+        .catch(error => console.error('Error uploading video:', error));
+    };
+
+    // Load videos when page loads
+    loadVideos();
+
+
+
+    </script>
+</body>
+</html>
